@@ -48,7 +48,7 @@ export default async function handleRequest(
   });
 }
 
-// This context should be initialized in React Router runtime.
+// `unstable_createContext()` should be executed in React Router's runtime.
 // So, placing it here instead of workers/app.ts
 export const cloudflareRRCtx = unstable_createContext<CloudflareBindings>();
 export const setCloudflareRRCtx = (
