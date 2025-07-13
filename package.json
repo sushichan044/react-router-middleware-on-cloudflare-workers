@@ -4,12 +4,14 @@
 	"type": "module",
 	"scripts": {
 		"build": "react-router build",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"typegen": "pnpm run --stream --color \"/^typegen:/\"",
+		"typegen:cloudflare": "wrangler types --env-interface CloudflareBindings",
+		"typegen:react-router": "react-router typegen",
 		"deploy": "pnpm run build && wrangler deploy",
 		"dev": "react-router dev",
-		"postinstall": "npm run cf-typegen",
+		"postinstall": "pnpm run typegen",
 		"preview": "pnpm run build && vite preview",
-		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
+		"typecheck": "pnpm run typegen && tsc -b"
 	},
 	"dependencies": {
 		"hono": "4.8.4",
