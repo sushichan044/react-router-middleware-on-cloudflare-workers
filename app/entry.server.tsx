@@ -6,6 +6,8 @@ import type {
 import { ServerRouter, unstable_createContext } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
+import { hc } from "hono/client";
+import type { APIRoutes } from "../workers/api";
 
 export default async function handleRequest(
   request: Request,
@@ -62,4 +64,13 @@ export const setExecutionContextRRCtx = (
   executionContext: ExecutionContext
 ) => {
   ctx.set(executionContextRRCtx, executionContext);
+};
+
+export const apiClientRRCtx =
+  unstable_createContext<ReturnType<typeof hc<APIRoutes>>>();
+export const setApiClientRRCtx = (
+  ctx: unstable_InitialContext,
+  apiClient: ReturnType<typeof hc<APIRoutes>>
+) => {
+  ctx.set(apiClientRRCtx, apiClient);
 };
