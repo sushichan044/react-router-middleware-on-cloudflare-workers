@@ -29,7 +29,7 @@ This project solves a common challenge when building full-stack applications wit
 
 ### 1. Define Context Creators (`app/entry.server.tsx`)
 
-**Why here?** Context creators must be executed within React Router's framework runtime, which has its own context system.
+**Why here?** `unstable_createContext()` must be executed within React Router's framework runtime, which has its own context system.
 
 ```typescript
 // Define context keys
