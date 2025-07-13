@@ -1,6 +1,7 @@
 import type { Route } from "./+types/home";
-import { cloudflareRRCtx } from "../entry.server";
+import { apiClientRRCtx, cloudflareRRCtx } from "../entry.server";
 import logoLight from "../welcome/logo-light.svg";
+import { Suspense, use, type FC } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,8 +12,11 @@ export function meta({}: Route.MetaArgs) {
 
 export function loader({ context }: Route.LoaderArgs) {
   const cf = context.get(cloudflareRRCtx);
+  const api = context.get(apiClientRRCtx);
 
-  return { message: cf.VALUE_FROM_CLOUDFLARE };
+  const slowResponsePromise = api.slow.$get().then((res) => res.json());
+
+  return { message: cf.VALUE_FROM_CLOUDFLARE, slowResponsePromise };
 }
 
 const Message = ({ message }: { message: string }) => {
@@ -21,6 +25,16 @@ const Message = ({ message }: { message: string }) => {
       <p className="self-stretch p-3 leading-normal">{message}</p>
     </div>
   );
+};
+
+const SlowResponse: FC<{
+  slowResponsePromise: Promise<{
+    message: string;
+  }>;
+}> = ({ slowResponsePromise }) => {
+  const { message } = use(slowResponsePromise);
+
+  return <Message message={message} />;
 };
 
 export default function Home({ loaderData }: Route.ComponentProps) {
@@ -34,6 +48,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </header>
         <div className="max-w-[600px] w-full space-y-6 px-4">
           <Message message={loaderData.message} />
+          <Suspense fallback={<div>Loading slow response...</div>}>
+            <SlowResponse
+              slowResponsePromise={loaderData.slowResponsePromise}
+            />
+          </Suspense>
         </div>
       </div>
     </main>
