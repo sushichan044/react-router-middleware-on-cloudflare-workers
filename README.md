@@ -39,6 +39,7 @@ export const apiClientRRCtx =
 export const executionContextRRCtx = unstable_createContext<ExecutionContext>();
 
 // Define setter utilities to inject context instance
+// Optional, but better type safety
 export const setCloudflareRRCtx = (ctx: unstable_InitialContext, env: CloudflareBindings) => {
   ctx.set(cloudflareRRCtx, env);
 };
