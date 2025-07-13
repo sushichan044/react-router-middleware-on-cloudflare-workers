@@ -70,7 +70,9 @@ When using `createRequestHandler` to connect React Router with your custom web s
 > Please confirm you are returning an instance of `Map<unstable_routerContext, unknown>` from your `getLoadContext` function.
 > ```
 >
-> This error appears when your context injection implementation is incorrect. However, the error message itself refers to the standard React Router approach using `getLoadContext`. When using a custom web server with `createRequestHandler` (like this repository), you should ignore this specific error message and use the implementation pattern shown below instead.
+> This error appears when your context injection implementation is incorrect.
+>
+> However, the error message itself refers to the standard React Router approach using `getLoadContext`. When using a custom web server with `createRequestHandler` (like this repository), you should ignore this specific error message and use the implementation pattern shown below instead.
 >
 > If you implement the pattern correctly as shown in this repository, this error message will not appear.
 >
