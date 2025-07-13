@@ -1,5 +1,9 @@
-import type { AppLoadContext, EntryContext } from "react-router";
-import { ServerRouter } from "react-router";
+import type {
+  AppLoadContext,
+  EntryContext,
+  unstable_InitialContext,
+} from "react-router";
+import { ServerRouter, unstable_createContext } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 
@@ -41,3 +45,21 @@ export default async function handleRequest(
     status: responseStatusCode,
   });
 }
+
+// This context should be initialized in React Router runtime.
+// So, placing it here instead of workers/app.ts
+export const cloudflareRRCtx = unstable_createContext<CloudflareBindings>();
+export const setCloudflareRRCtx = (
+  ctx: unstable_InitialContext,
+  env: CloudflareBindings
+) => {
+  ctx.set(cloudflareRRCtx, env);
+};
+
+export const executionContextRRCtx = unstable_createContext<ExecutionContext>();
+export const setExecutionContextRRCtx = (
+  ctx: unstable_InitialContext,
+  executionContext: ExecutionContext
+) => {
+  ctx.set(executionContextRRCtx, executionContext);
+};
