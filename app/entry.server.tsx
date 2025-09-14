@@ -1,9 +1,9 @@
 import type {
   AppLoadContext,
   EntryContext,
-  unstable_InitialContext,
+  RouterContextProvider,
 } from "react-router";
-import { ServerRouter, unstable_createContext } from "react-router";
+import { ServerRouter, createContext } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 import { hc } from "hono/client";
@@ -47,30 +47,3 @@ export default async function handleRequest(
     status: responseStatusCode,
   });
 }
-
-// `unstable_createContext()` should be executed in React Router's runtime.
-// So, placing it here instead of workers/app.ts
-export const cloudflareRRCtx = unstable_createContext<CloudflareBindings>();
-export const setCloudflareRRCtx = (
-  ctx: unstable_InitialContext,
-  env: CloudflareBindings
-) => {
-  ctx.set(cloudflareRRCtx, env);
-};
-
-export const executionContextRRCtx = unstable_createContext<ExecutionContext>();
-export const setExecutionContextRRCtx = (
-  ctx: unstable_InitialContext,
-  executionContext: ExecutionContext
-) => {
-  ctx.set(executionContextRRCtx, executionContext);
-};
-
-export const apiClientRRCtx =
-  unstable_createContext<ReturnType<typeof hc<APIRoutes>>>();
-export const setApiClientRRCtx = (
-  ctx: unstable_InitialContext,
-  apiClient: ReturnType<typeof hc<APIRoutes>>
-) => {
-  ctx.set(apiClientRRCtx, apiClient);
-};

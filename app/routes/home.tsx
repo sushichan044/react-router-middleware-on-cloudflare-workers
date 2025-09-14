@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
-import { apiClientRRCtx, cloudflareRRCtx } from "../entry.server";
 import logoLight from "../welcome/logo-light.svg";
 import { Suspense, use, type FC } from "react";
+import { apiClientContext, cloudflareContext } from "../context";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,8 +11,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export function loader({ context }: Route.LoaderArgs) {
-  const cf = context.get(cloudflareRRCtx);
-  const api = context.get(apiClientRRCtx);
+  const cf = cloudflareContext.get(context);
+  const api = apiClientContext.get(context);
 
   // Fetch from Hono API endpoint
   const slowResponsePromise = api.slow.$get().then((res) => res.json());
