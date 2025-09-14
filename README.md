@@ -11,7 +11,8 @@ This project solves a common challenge when building full-stack applications wit
 
 ```
 ├── app/                          # React Router application
-│   ├── entry.server.tsx         # Server entry + context definitions
+│   ├── context.ts               # Centralized context definitions and utilities
+│   ├── entry.server.tsx         # Server entry point
 │   ├── root.tsx                 # Root layout component
 │   ├── routes/
 │   │   └── home.tsx             # Example route using injected context
@@ -27,36 +28,31 @@ This project solves a common challenge when building full-stack applications wit
 
 ## Understanding React Router's Context Integration
 
-### 1. Define Context Creators (`app/entry.server.tsx`)
+### 1. Define Context Creators (`app/context.ts`)
 
-**Why here?** `unstable_createContext()` must be executed within React Router's framework runtime, which has its own context system.
+**Why here?** `createContext()` must be executed within React Router's framework runtime, which has its own context system.
 
 ```typescript
-// Define context keys
-export const cloudflareRRCtx = unstable_createContext<CloudflareBindings>();
-export const apiClientRRCtx =
-  unstable_createContext<ReturnType<typeof hc<APIRoutes>>>();
-export const executionContextRRCtx = unstable_createContext<ExecutionContext>();
+// Centralized context definition with accessor utilities
+function createContextWithAccessor<T>() {
+  const ctx = createContext<T>();
 
-// Define setter utilities to inject context instance
-// Optional, but better type safety
-export const setCloudflareRRCtx = (ctx: unstable_InitialContext, env: CloudflareBindings) => {
-  ctx.set(cloudflareRRCtx, env);
-};
+  return {
+    get: (provider: Readonly<RouterContextProvider>) => provider.get(ctx),
+    set: (provider: RouterContextProvider, value: T) =>
+      provider.set(ctx, value),
+  };
+}
 
-export const setApiClientRRCtx = (
-  ctx: unstable_InitialContext,
-  apiClient: ReturnType<typeof hc<APIRoutes>>
-) => {
-  ctx.set(apiClientRRCtx, apiClient);
-};
+// Define context instances with built-in accessors
+export const cloudflareContext =
+  createContextWithAccessor<CloudflareBindings>();
 
-export const setExecutionContextRRCtx = (
-  ctx: unstable_InitialContext,
-  executionContext: ExecutionContext
-) => {
-  ctx.set(executionContextRRCtx, executionContext);
-};
+export const apiClientContext =
+  createContextWithAccessor<ReturnType<typeof hc<APIRoutes>>>();
+
+export const executionContextContext =
+  createContextWithAccessor<ExecutionContext>();
 ```
 
 ### 2. Inject Context in Worker (`workers/app.ts`)
@@ -80,26 +76,23 @@ When using `createRequestHandler` to connect React Router with your custom web s
 > error ref: <https://github.com/remix-run/react-router/blob/c0e186764e0309415b2de38565995c142f986eb5/packages/react-router/lib/server-runtime/server.ts#L138-L145>
 
 ```typescript
-import {
-  createRequestHandler,
-  type unstable_InitialContext,
-} from "react-router";
+import { createRequestHandler, RouterContextProvider } from "react-router";
 import * as build from "virtual:react-router/server-build";
 import {
-  setCloudflareRRCtx,
-  setExecutionContextRRCtx,
-  setApiClientRRCtx,
-} from "../app/entry.server";
+  apiClientContext,
+  cloudflareContext,
+  executionContextContext,
+} from "../app/context";
 
 const reactRouterHandler = createRequestHandler(build, import.meta.env.MODE);
 
 app.all("*", async (c) => {
-  const rrCtx: unstable_InitialContext = new Map();
+  const rrCtx = new RouterContextProvider();
 
-  // Inject React Router's Context
-  setCloudflareRRCtx(rrCtx, c.env);
-  setExecutionContextRRCtx(rrCtx, c.executionCtx);
-  setApiClientRRCtx(rrCtx, c.get("apiClient"));
+  // Inject React Router's Context using centralized accessors
+  cloudflareContext.set(rrCtx, c.env);
+  apiClientContext.set(rrCtx, c.get("apiClient"));
+  executionContextContext.set(rrCtx, c.executionCtx);
 
   // Pass context to React Router
   return reactRouterHandler(c.req.raw, rrCtx);
@@ -110,8 +103,9 @@ app.all("*", async (c) => {
 
 ```typescript
 export function loader({ context }: Route.LoaderArgs) {
-  // Access injected context
-  const cf = context.get(cloudflareRRCtx);
+  // Access injected context using centralized accessors
+  const cf = cloudflareContext.get(context);
+  const api = apiClientContext.get(context);
 
   return { message: cf.VALUE_FROM_CLOUDFLARE };
 }
@@ -181,7 +175,7 @@ export default {
   ssr: true,
   future: {
     unstable_viteEnvironmentApi: true,
-    unstable_middleware: true,  // Required for context injection
+    v8_middleware: true,  // Required for context injection
   },
 } satisfies Config;
 ```

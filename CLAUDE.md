@@ -23,8 +23,8 @@ This is a React Router v7 application running on Cloudflare Workers with unstabl
 
 2. **Context Injection Pattern**:
    - `workers/app.ts` creates API client and injects it into React Router context
-   - `app/entry.server.tsx` defines context creators for Cloudflare bindings, execution context, and API client
-   - Routes can access these contexts using React Router's unstable context API
+   - `app/context.ts` defines centralized context creators with accessor utilities for Cloudflare bindings, execution context, and API client
+   - Routes can access these contexts using React Router's context API
 
 3. **API Integration**:
    - `workers/api/index.ts` - Simple Hono API routes (/health, /slow)
@@ -33,14 +33,15 @@ This is a React Router v7 application running on Cloudflare Workers with unstabl
 
 ### Important Files
 
-- `react-router.config.ts` - Enables unstable middleware and Vite environment API
-- `workers/app.ts:40-46` - Context injection into React Router
-- `app/entry.server.tsx:53-76` - Context definition and setters
+- `react-router.config.ts` - Enables v8 middleware and Vite environment API
+- `workers/app.ts:37-44` - Context injection into React Router
+- `app/context.ts` - Centralized context definition and accessor utilities
 - `workers/api/index.ts` - API route definitions
 
 ### Development Notes
 
-- Uses React Router v7 with experimental middleware feature
+- Uses React Router v7 with v8 middleware feature
 - TypeScript configuration includes Cloudflare Workers types
 - Hono is used for both API routes and middleware
 - Tailwind CSS for styling
+- Centralized context management pattern using `app/context.ts`
